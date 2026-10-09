@@ -1,6 +1,6 @@
 import tkinter as tk
 from tkinter import messagebox
-import random
+from password_generator import create_password
 import re
 import webbrowser
 
@@ -34,9 +34,9 @@ def update_strength_display(event=None):
     pw = output_text.get("1.0", tk.END).strip()
     if pw:
         strength = calculate_strength(pw)
-        strength_label.config(text=f"geschätzte Passwortqualität: {strength}")
+        strength_label.config(text=f"Grobe Einschätzung: {strength}")
     else:
-        strength_label.config(text="geschätzte Passwortqualität: ")
+        strength_label.config(text="Grobe Einschätzung: ")
 
 def generate_password():
     try:
@@ -65,7 +65,11 @@ def generate_password():
         messagebox.showwarning("Achtung", "Bitte mindestens eine Zeichengruppe auswählen.")
         return
 
-    password = ''.join(random.choice(chars) for _ in range(length))
+    try:
+        password = create_password(length, chars)
+    except ValueError as error:
+        messagebox.showerror("Ungültige Eingabe", str(error))
+        return
     output_text.delete("1.0", tk.END)
     output_text.insert(tk.END, password)
     update_strength_display()
@@ -76,11 +80,11 @@ def open_link(event):
 # GUI-Fenster
 root = tk.Tk()
 root.title("Passwortgenerator v1.0 by IT-Janz")
-root.geometry("500x500")
+root.geometry("500x540")
 root.resizable(False, False)
 
 # Variablen
-length_var = tk.StringVar(value="12")
+length_var = tk.StringVar(value="16")
 var_upper = tk.BooleanVar(value=True)
 var_lower = tk.BooleanVar(value=True)
 var_digits = tk.BooleanVar(value=True)
@@ -109,8 +113,10 @@ output_text.pack(padx=20)
 output_text.config(wrap="none")
 output_text.bind("<KeyRelease>", update_strength_display)
 
-strength_label = tk.Label(root, text="geschätzte Passwortqualität: ", font=("Arial", 16, "italic"))
+strength_label = tk.Label(root, text="Grobe Einschätzung: ", font=("Arial", 16, "italic"))
 strength_label.pack(anchor="w", padx=20, pady=(5, 10))
+
+tk.Label(root, text="Die Einschätzung ist keine Sicherheitsgarantie.").pack(anchor="w", padx=20)
 
 # Klickbarer Link
 link_label = tk.Label(root, text="Bereitgestellt von https://www.it-janz.de", fg="blue", cursor="hand2")
